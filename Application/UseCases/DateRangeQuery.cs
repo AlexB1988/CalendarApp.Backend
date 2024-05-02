@@ -38,9 +38,11 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 
 			var dateBegin = request.DateBegin;
 
-			do
+			while (dateBegin <= request.DateEnd)
 			{
 				var date = dateBegin.ToString("dd.MM.yyyy");
+
+				var dayOfWeek = culture.DateTimeFormat.GetDayName(dateBegin.DayOfWeek);
 
 				if (holidayDict.ContainsKey(date))
 				{
@@ -48,9 +50,10 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 						new DateRangeViewModel
 						{
 							Date = date,
+							RescheduledDay = holidayDict[date].RescheduledDate,
 							TypeOfDay = holidayDict[date].Type.GetDescription(),
 							Holiday = holidayDict[date].HolidayName.GetDescription(),
-							WeekDay = culture.DateTimeFormat.GetDayName(dateBegin.DayOfWeek),
+							WeekDay = dayOfWeek,
 							WorkingHours = 0
 						});
 				}
@@ -62,7 +65,7 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 							Date = date,
 							TypeOfDay = TypeOfDay.WorkingDay.GetDescription(),
 							Holiday = Holiday.None.GetDescription(),
-							WeekDay = culture.DateTimeFormat.GetDayName(dateBegin.DayOfWeek),
+							WeekDay = dayOfWeek,
 							WorkingHours = 7
 						}
 						);
@@ -76,7 +79,8 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 							Date = date,
 							TypeOfDay = TypeOfDay.DayOff.GetDescription(),
 							Holiday = Holiday.None.GetDescription(),
-							WeekDay = culture.DateTimeFormat.GetDayName(dateBegin.DayOfWeek),
+							WeekDay = dayOfWeek,
+							WorkingHours = 0
 						});
 				}
 				else
@@ -87,13 +91,15 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 							Date = date,
 							TypeOfDay = TypeOfDay.WorkingDay.GetDescription(),
 							Holiday = Holiday.None.GetDescription(),
-							WeekDay = culture.DateTimeFormat.GetDayName(dateBegin.DayOfWeek),
+							WeekDay = dayOfWeek,
+							WorkingHours = dateBegin.DayOfWeek == DayOfWeek.Friday
+								? 7
+								: 8
 						});
 				}
 
 				dateBegin = dateBegin.AddDays(1);
 			}
-			while (dateBegin <= request.DateEnd);
 
 			return dateRange;
 		}
