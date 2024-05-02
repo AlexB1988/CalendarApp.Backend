@@ -46,16 +46,21 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 
 				if (holidayDict.ContainsKey(date))
 				{
-					dateRange.Add(
-						new DateRangeViewModel
-						{
-							Date = date,
-							RescheduledDay = holidayDict[date].RescheduledDate,
-							TypeOfDay = holidayDict[date].Type.GetDescription(),
-							Holiday = holidayDict[date].HolidayName.GetDescription(),
-							WeekDay = dayOfWeek,
-							WorkingHours = 0
-						});
+					var holiday = holidayDict[date];
+
+					if(holiday != null)
+					{
+						dateRange.Add(
+							new DateRangeViewModel
+							{
+								Date = date,
+								RescheduledDay = holiday.RescheduledDate,
+								TypeOfDay = holiday.Type.GetDescription(),
+								Holiday = holiday.HolidayName.GetDescription(),
+								WeekDay = dayOfWeek,
+								WorkingHours = 0
+							});
+					}
 				}
 				else if (rescheduledDateDict.ContainsKey(date))
 				{
@@ -85,6 +90,8 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 				}
 				else
 				{
+					var nextDay = (dateBegin.AddDays(1)).ToString("dd.MM.yyyy");
+					
 					dateRange.Add(
 						new DateRangeViewModel
 						{
@@ -93,6 +100,7 @@ public class DateRangeQuery : IRequest<IReadOnlyCollection<DateRangeViewModel>>
 							Holiday = Holiday.None.GetDescription(),
 							WeekDay = dayOfWeek,
 							WorkingHours = dateBegin.DayOfWeek == DayOfWeek.Friday
+								|| holidayDict.ContainsKey(nextDay)
 								? 7
 								: 8
 						});
